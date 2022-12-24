@@ -22,6 +22,15 @@ bool heroInAdventure;
 
 int currentWallPercent = (int)Constants.WallPercent;
 
+
+// int[,] dogs = new int[,]
+// {
+//     { 0, 0 },
+//     { 0, 0 }
+// };
+//
+// int iDog, jDog;
+
 while (true)
 {
     rows = random.Next((int)Constants.MinRows, (int)Constants.MaxRows + 1);
