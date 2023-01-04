@@ -8,6 +8,7 @@
 //3) передвижение героя по полю
 //4) вход героя в портал и переход к шагу 1
 
+using System.Security.Cryptography;
 using ConsoleAppHeroAdventure;
 
 int InitRows()
@@ -112,8 +113,10 @@ void PrintGameInfo(int level, int wallPercent)
     Console.WriteLine($"Level = {level}, Wall Percent = {wallPercent}");
 }
 
-void PrintField(Cell[,] field, int iHero, int jHero)
+void PrintGameObjects(Cell[,] field, int iHero, int jHero, int[,] dogs)
 {
+    ResetConsole();
+    
     int rows = field.GetLength(0);
     int cols = field.GetLength(1);
 
@@ -125,6 +128,11 @@ void PrintField(Cell[,] field, int iHero, int jHero)
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.Write((char)Constants.HeroSkin);
+            }
+            else if (IsStateOnDog(dogs, i, j))
+            {
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.Write((char)Constants.DogSkin);
             }
             else
             {
@@ -207,13 +215,123 @@ void GotoNextLevel(ref int currentLevel, ref int currentWallPercent, ref bool he
     heroInAdventure = false;
 }
 
+int[,] CreateDogs(int countDogs)
+{
+    int[,] dogs = new int[countDogs, 2];
 
+    for (int i = 0; i < dogs.GetLength(0); i++)
+    {
+        for (int j = 0; j < dogs.GetLength(1); j++)
+        {
+            dogs[i, j] = -1;
+        }
+    }
+
+    return dogs;
+}
+
+bool IsStateOnDog(int[,] dogs, int iObject, int jObject)
+{
+    int countDogs = dogs.GetLength(0);
+
+    for (int i = 0; i < countDogs; i++)
+    {
+        if (dogs[i, 0] == iObject && dogs[i, 1] == jObject)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void SetDogs(int[,] dogs, Cell[,] field, int iHero, int jHero)
+{
+    Random random = new Random();
+    int rows = field.GetLength(0);
+    int cols = field.GetLength(1);
+
+    int countDogs = dogs.GetLength(0);
+
+    for (int i = 0; i < countDogs; i++)
+    {
+        int iDog, jDog;
+        do
+        {
+            iDog = random.Next(1, rows - 1);
+            jDog = random.Next(1, cols - 1);
+        } while (iDog == iHero && jDog == jHero
+                 || field[iDog, jDog] == Cell.Portal
+                 || field[iDog, jDog] == Cell.Wall
+                 || IsStateOnDog(dogs, iDog, jDog));
+
+        dogs[i, 0] = iDog;
+        dogs[i, 1] = jDog;
+    }
+}
+
+void MoveDogs(int[,] dogs, Cell[,] field)
+{
+    Random random = new Random();
+    int countDogs = dogs.GetLength(0);
+
+    for (int i = 0; i < countDogs; i++)
+    {
+        int direction = random.Next(1, 4 + 1);
+
+        int iDog = dogs[i, 0];
+        int jDog = dogs[i, 1];
+
+        switch (direction)
+        {
+            case (int)Constants.DirectionUp:
+                if (field[iDog - 1, jDog] == Cell.Empty)
+                {
+                    iDog--;
+                }
+
+                break;
+            case (int)Constants.DirectionDown:
+                if (field[iDog + 1, jDog] == Cell.Empty)
+                {
+                    iDog++;
+                }
+
+                break;
+            case (int)Constants.DirectionLeft:
+                if (field[iDog, jDog - 1] == Cell.Empty)
+                {
+                    jDog--;
+                }
+
+                break;
+            case (int)Constants.DirectionRight:
+                if (field[iDog, jDog + 1] == Cell.Empty)
+                {
+                    jDog++;
+                }
+
+                break;
+        }
+
+        dogs[i, 0] = iDog;
+        dogs[i, 1] = jDog;
+    }
+}
+
+void GameOver(ref bool heroInAdventure, ref bool runGame)
+{
+    heroInAdventure = false;
+    runGame = false;
+    Console.WriteLine("Игра окончена!");
+}
 //-------
 
 int currentLevel = 1;
 int currentWallPercent = (int)Constants.WallPercent;
+bool runGame = true;
 
-while (true)
+while (runGame)
 {
     int rows = InitRows();
     int cols = InitCols();
@@ -227,20 +345,29 @@ while (true)
     SetPortal(field, iHero, jHero);
     SetWalls(field, currentWallPercent, iHero, jHero);
 
+    int[,] dogs = CreateDogs(10);
+    SetDogs(dogs, field, iHero, jHero);
+    
+    //PrintGameInfo(currentLevel, currentWallPercent);
+    PrintGameObjects(field, iHero, jHero, dogs);
+    
     bool heroInAdventure = true;
-
     while (heroInAdventure)
     {
-        ResetConsole();
-
-        PrintGameInfo(currentLevel, currentWallPercent);
-        PrintField(field, iHero, jHero);
-
         MoveHero(field, ref iHero, ref jHero, ref heroInAdventure);
+        MoveDogs(dogs, field);
+
+        //PrintGameInfo(currentLevel, currentWallPercent);
+        PrintGameObjects(field, iHero, jHero, dogs);
 
         if (IsHeroInPortal(field, iHero, jHero))
         {
             GotoNextLevel(ref currentLevel, ref currentWallPercent, ref heroInAdventure);
+        }
+
+        if (IsStateOnDog(dogs, iHero, jHero))
+        {
+            GameOver(ref heroInAdventure, ref runGame);
         }
     }
 }

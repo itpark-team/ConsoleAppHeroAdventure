@@ -13,5 +13,12 @@ public enum Constants
     
     HeroSkin = 'H',
     
-    WallPercent = 5
+    DogSkin = '@',
+    
+    WallPercent = 5,
+    
+    DirectionUp = 1,
+    DirectionDown = 2,
+    DirectionLeft = 3,
+    DirectionRight = 4,
 }
