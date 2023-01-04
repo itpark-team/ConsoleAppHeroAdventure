@@ -8,6 +8,9 @@
 //3) передвижение героя по полю
 //4) вход героя в портал и переход к шагу 1
 
+
+//bhjksadbfjkhsdbfjhsbjdhfbsjhdbfjhsbdfbj
+//sdjkfbkjsdbfksjdbfdskj
 using ConsoleAppHeroAdventure;
 
 Random random = new Random();
@@ -21,7 +24,6 @@ int iHero, jHero;
 bool heroInAdventure;
 
 int currentWallPercent = (int)Constants.WallPercent;
-
 
 // int[,] dogs = new int[,]
 // {
@@ -174,4 +176,5 @@ while (true)
             heroInAdventure = false;
         }
     }
+    
 }
